@@ -290,15 +290,8 @@ Incluye:
 
 # Autores
 
-Proyecto desarrollado por estudiantes del CFGS **Desarrollo de Aplicaciones Multiplataforma (DAM)**.
-
-Integrantes del proyecto:
-
-* Nombre del estudiante
-* Nombre del estudiante
+* Jhojahn Sebastian Ramirez Marin
+* Irene Gomez Cañada
 
 ---
 
-# Licencia
-
-Proyecto desarrollado con fines académicos.
