@@ -417,8 +417,37 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
+# Logs
+*.log
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment variables
+.env
+
+# Database files
+*.db
+*.sqlite3
+
+# Python packaging
+dist/
+build/
+*.egg-info/
+
 # PyCharm
 .idea/
 
-# Logs
-*.log
+# pytest
+.pytest_cache/
+
+# mypy
+.mypy_cache/
