@@ -25,14 +25,14 @@ jobs:
           pip install -r requirements.txt
           pip install flake8
 
-      - name: quality (lint)
+      - name: quality code (lint)
         run: |
           flake8 .
 
-      - name: Verificación básica del proyecto
+      - name: basic project verification
         run: |
           python -m compileall .
 
-      - name: Construcción de imagen Docker
+      - name: docker image
         run: |
           docker build -t api .
