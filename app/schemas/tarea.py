@@ -19,4 +19,3 @@ class TareaUpdate(SQLModel):
     estado: str | None = None
     id_proyecto: int | None = None
     id_usuario_asignado: int | None = None
-
