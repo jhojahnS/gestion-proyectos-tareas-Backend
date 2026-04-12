@@ -1,5 +1,7 @@
+from __future__ import annotations
 from datetime import datetime
 from sqlmodel import SQLModel, Field, Relationship
+
 
 class Comentario(SQLModel, table=True):
     id_comentario: int | None = Field(default=None, primary_key=True)
