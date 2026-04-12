@@ -8,6 +8,7 @@ app = FastAPI()
 APP_NAME = os.getenv("APP_NAME", "gestion-proyectos-tareas-backend")
 
 
+
 @app.get("/")
 def root():
     return {
