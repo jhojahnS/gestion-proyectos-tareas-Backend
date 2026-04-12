@@ -1,15 +1,23 @@
-from sqlmodel import Session, select
 from fastapi import Depends, HTTPException
-from app.models.usuario import Usuario
-from app.schemas.usuario import UsuarioCreate, UsuarioResponse, UsuarioUpdate
+from sqlmodel import Session, select
+
 from app.db.session import get_session
+from app.models.usuario import Usuario
+from app.schemas.usuario import (
+    UsuarioCreate,
+    UsuarioResponse,
+    UsuarioUpdate,
+)
 
 
 class UsuarioService:
     def __init__(self, session: Session = Depends(get_session)):
         self.session = session
 
-    def create(self, usuario_data: UsuarioCreate) -> UsuarioResponse:
+    def create(
+        self,
+        usuario_data: UsuarioCreate,
+    ) -> UsuarioResponse:
         usuario = Usuario(**usuario_data.model_dump())
         self.session.add(usuario)
         self.session.commit()
@@ -22,13 +30,23 @@ class UsuarioService:
     def get_by_id(self, id: int):
         usuario = self.session.get(Usuario, id)
         if not usuario:
-            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+            raise HTTPException(
+                status_code=404,
+                detail="Usuario no encontrado",
+            )
         return usuario
 
-    def update(self, id: int, usuario_data: UsuarioUpdate) -> Usuario:
+    def update(
+        self,
+        id: int,
+        usuario_data: UsuarioUpdate,
+    ) -> Usuario:
         usuario = self.session.get(Usuario, id)
         if not usuario:
-            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+            raise HTTPException(
+                status_code=404,
+                detail="Usuario no encontrado",
+            )
 
         usuario_dict = usuario_data.model_dump(exclude_unset=True)
         for key, value in usuario_dict.items():
@@ -42,7 +60,10 @@ class UsuarioService:
     def delete(self, id: int):
         usuario = self.session.get(Usuario, id)
         if not usuario:
-            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+            raise HTTPException(
+                status_code=404,
+                detail="Usuario no encontrado",
+            )
 
         self.session.delete(usuario)
         self.session.commit()
