@@ -1,6 +1,12 @@
 from __future__ import annotations
+
 from datetime import date
+from typing import TYPE_CHECKING
+
 from sqlmodel import SQLModel, Field, Relationship
+
+if TYPE_CHECKING:
+    from app.models.tarea import Tarea
 
 
 class Proyecto(SQLModel, table=True):
@@ -11,5 +17,5 @@ class Proyecto(SQLModel, table=True):
 
     tareas: list["Tarea"] = Relationship(
         back_populates="proyecto",
-        cascade_delete=True
+        cascade_delete=True,
     )

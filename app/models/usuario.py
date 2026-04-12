@@ -1,5 +1,13 @@
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from sqlmodel import SQLModel, Field, Relationship
+
+if TYPE_CHECKING:
+    from app.models.comentario import Comentario
+    from app.models.rol import Rol
+    from app.models.tarea import Tarea
 
 
 class Usuario(SQLModel, table=True):
@@ -11,8 +19,8 @@ class Usuario(SQLModel, table=True):
 
     rol: "Rol" = Relationship(back_populates="usuarios")
     tareas_asignadas: list["Tarea"] = Relationship(
-        back_populates="usuario_asignado"
+        back_populates="usuario_asignado",
     )
     comentarios: list["Comentario"] = Relationship(
-        back_populates="usuario"
+        back_populates="usuario",
     )

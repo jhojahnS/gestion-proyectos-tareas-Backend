@@ -1,10 +1,12 @@
 from pydantic_settings import BaseSettings
 
-class Config(BaseSettings):
+
+class Settings(BaseSettings):
+    app_name: str = "gestion-proyectos-tareas-backend"
     database_url: str = "sqlite:///./database.db"
-    debug: bool = False
 
     class Config:
         env_file = ".env"
 
-config = Config()
+
+settings = Settings()

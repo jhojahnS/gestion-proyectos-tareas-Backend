@@ -1,6 +1,13 @@
 from __future__ import annotations
+
 from datetime import datetime
+from typing import TYPE_CHECKING
+
 from sqlmodel import SQLModel, Field, Relationship
+
+if TYPE_CHECKING:
+    from app.models.tarea import Tarea
+    from app.models.usuario import Usuario
 
 
 class Comentario(SQLModel, table=True):

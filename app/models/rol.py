@@ -1,5 +1,11 @@
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from sqlmodel import SQLModel, Field, Relationship
+
+if TYPE_CHECKING:
+    from app.models.usuario import Usuario
 
 
 class Rol(SQLModel, table=True):
@@ -7,5 +13,5 @@ class Rol(SQLModel, table=True):
     nombre: str
 
     usuarios: list["Usuario"] = Relationship(
-        back_populates="rol"
+        back_populates="rol",
     )
