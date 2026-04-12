@@ -1,6 +1,7 @@
-fastapi
+fastapi[standard]
 uvicorn
 sqlalchemy
+sqlmodel
 psycopg2-binary
 python-jose[cryptography]
 passlib[bcrypt]
