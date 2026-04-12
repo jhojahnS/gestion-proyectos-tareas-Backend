@@ -8,5 +8,5 @@ class Comentario(SQLModel, table=True):
     id_tarea: int = Field(foreign_key="tarea.id_tarea")
     id_usuario: int = Field(foreign_key="usuario.id_usuario")
 
-    tarea: "Tarea" = Relationship(back_populates="comentario")
-    usuario: "Usuario" = Relationship(back_populates="comentario")
+    tarea: "Tarea" = Relationship(back_populates="comentarios")
+    usuario: "Usuario" = Relationship(back_populates="comentarios")
