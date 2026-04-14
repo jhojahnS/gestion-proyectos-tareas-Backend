@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from app.routers import comentarios, proyectos, roles, tareas, usuarios
 import os
+from sqlmodel import SQLModel
+from app.db.session import engine
 
 app = FastAPI()
 
@@ -25,3 +27,8 @@ app.include_router(usuarios.router)
 app.include_router(proyectos.router)
 app.include_router(tareas.router)
 app.include_router(comentarios.router)
+
+def init_db():
+    SQLModel.metadata.create_all(engine)
+
+init_db()
