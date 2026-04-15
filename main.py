@@ -4,12 +4,6 @@ from fastapi import FastAPI
 from app.db.session import engine
 from app.routers import comentarios, proyectos, roles, tareas, usuarios
 
-from app.models.comentario import Comentario
-from app.models.proyecto import Proyecto
-from app.models.rol import Rol
-from app.models.tarea import Tarea
-from app.models.usuario import Usuario
-
 
 app = FastAPI()
 
