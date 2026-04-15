@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from app.routers import comentarios, proyectos, roles, tareas, usuarios
 import os
+from sqlmodel import SQLModel
+from app.db.session import engine
 
 app = FastAPI()
 
