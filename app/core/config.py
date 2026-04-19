@@ -2,7 +2,9 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    database_url: str = "sqlite:///./database.db"
+    database_url: str = (
+        "postgresql+psycopg2://admin:admin@localhost:5432/gestion"
+    )
     debug: bool = False
 
     class Config:

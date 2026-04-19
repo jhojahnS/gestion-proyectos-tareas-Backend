@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:15
+    container_name: gestion_db
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: gestion
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build: .
+    container_name: gestion_api
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg2://admin:admin@db:5432/gestion
+      DEBUG: "True"
+
+volumes:
+  postgres_data:
