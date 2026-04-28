@@ -1,4 +1,3 @@
-from sqlmodel import SQLModel
 from sqlmodel import SQLModel, Field
 
 
@@ -15,8 +14,9 @@ class UsuarioResponse(SQLModel):
     email: str
     id_rol: int
 
+
 class UsuarioUpdate(SQLModel):
     nombre: str | None = None
     email: str | None = None
-    password: str | None = Field(default=None,min_length=8,max_length=72)
+    password: str | None = Field(default=None, min_length=8, max_length=72)
     id_rol: int | None = None

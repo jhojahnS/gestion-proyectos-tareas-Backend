@@ -8,6 +8,7 @@ from app.core.auth import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
+
 @router.post("/register", response_model=UsuarioResponse)
 def register(user: UsuarioCreate, service: UsuarioService = Depends()):
     return service.create(user)
@@ -20,7 +21,9 @@ def login(
 ):
     user = service.get_by_email(form_data.username)
 
-    if not user or not verify_password(form_data.password, user.hashed_password):
+    if not user or not verify_password(
+        form_data.password, user.hashed_password
+    ):
         raise HTTPException(status_code=400, detail="Credenciales inválidas")
 
     token = create_access_token(user.email)

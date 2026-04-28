@@ -21,7 +21,8 @@ class UsuarioService:
     ) -> UsuarioResponse:
         usuario_dict = usuario_data.model_dump()
         usuario_dict["hashed_password"] = (
-        hash_password(usuario_dict.pop("password")))
+            hash_password(usuario_dict.pop("password"))
+        )
         usuario = Usuario(**usuario_dict)
         self.session.add(usuario)
         self.session.commit()
