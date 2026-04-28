@@ -12,7 +12,7 @@ class Usuario(SQLModel, table=True):
     id_usuario: int | None = Field(default=None, primary_key=True)
     nombre: str
     email: str
-    password: str
+    hashed_password: str
     id_rol: int = Field(foreign_key="rol.id_rol")
 
     rol: "Rol" = Relationship(back_populates="usuarios")

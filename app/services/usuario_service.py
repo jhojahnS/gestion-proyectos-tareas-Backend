@@ -1,5 +1,6 @@
 from fastapi import Depends, HTTPException
 from sqlmodel import Session, select
+from app.core.security import hash_password
 
 from app.db.session import get_session
 from app.models.usuario import Usuario
@@ -18,7 +19,10 @@ class UsuarioService:
         self,
         usuario_data: UsuarioCreate,
     ) -> UsuarioResponse:
-        usuario = Usuario(**usuario_data.model_dump())
+        usuario_dict = usuario_data.model_dump()
+        usuario_dict["hashed_password"] = (
+        hash_password(usuario_dict.pop("password")))
+        usuario = Usuario(**usuario_dict)
         self.session.add(usuario)
         self.session.commit()
         self.session.refresh(usuario)
@@ -68,3 +72,8 @@ class UsuarioService:
         self.session.delete(usuario)
         self.session.commit()
         return {"message": "Usuario eliminado exitosamente"}
+
+    def get_by_email(self, email: str):
+        return self.session.exec(
+            select(Usuario).where(Usuario.email == email)
+        ).first()

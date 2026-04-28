@@ -2,7 +2,7 @@ import os
 from sqlmodel import SQLModel
 from fastapi import FastAPI
 from app.db.session import engine
-from app.routers import comentarios, proyectos, roles, tareas, usuarios
+from app.routers import auth, comentarios, proyectos, roles, tareas, usuarios
 
 
 app = FastAPI()
@@ -33,3 +33,4 @@ app.include_router(usuarios.router)
 app.include_router(proyectos.router)
 app.include_router(tareas.router)
 app.include_router(comentarios.router)
+app.include_router(auth.router)
