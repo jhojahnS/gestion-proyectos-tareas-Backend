@@ -17,3 +17,5 @@ class Proyecto(SQLModel, table=True):
         back_populates="proyecto",
         cascade_delete=True,
     )
+
+    usuario_id: int = Field(foreign_key="usuario.id_usuario")

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from app.core.auth import get_current_user
 
 from app.schemas.proyecto import (
     ProyectoCreate,
@@ -13,14 +14,18 @@ router = APIRouter(prefix="/proyectos", tags=["Proyectos"])
 @router.post("/", response_model=ProyectoResponse)
 async def create_proyecto(
     proyecto: ProyectoCreate,
+    user=Depends(get_current_user),
     service: ProyectoService = Depends(),
 ):
-    return service.create(proyecto)
+    return service.create(proyecto, user.id_usuario)
 
 
-@router.get("/", response_model=list[ProyectoResponse])
-async def read_proyectos(service: ProyectoService = Depends()):
-    return service.get_all()
+@router.get("/")
+def read_proyectos(
+    user=Depends(get_current_user),
+    service: ProyectoService = Depends()
+):
+    return service.get_by_user(user.id_usuario)
 
 
 @router.get("/{id}", response_model=ProyectoResponse)

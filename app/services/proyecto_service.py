@@ -15,10 +15,14 @@ class ProyectoService:
         self.session = session
 
     def create(
-        self,
-        proyecto_data: ProyectoCreate,
+            self,
+            proyecto_data: ProyectoCreate,
+            user_id: int,
     ) -> ProyectoResponse:
-        proyecto = Proyecto(**proyecto_data.model_dump())
+        proyecto = Proyecto(
+            **proyecto_data.model_dump(),
+            usuario_id=user_id,
+        )
         self.session.add(proyecto)
         self.session.commit()
         self.session.refresh(proyecto)
@@ -68,3 +72,8 @@ class ProyectoService:
         self.session.delete(proyecto)
         self.session.commit()
         return {"message": "Proyecto eliminado exitosamente"}
+
+    def get_by_user(self, user_id: int):
+        return self.session.exec(
+            select(Proyecto).where(Proyecto.usuario_id == user_id)
+        ).all()
