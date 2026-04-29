@@ -29,9 +29,12 @@ class UsuarioService:
             )
 
         usuario_dict = usuario_data.model_dump()
-        usuario_dict["hashed_password"] = (
-            hash_password(usuario_dict.pop("password"))
-        )
+        try:
+            usuario_dict["hashed_password"] = (
+                hash_password(usuario_dict.pop("password"))
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
         usuario = Usuario(**usuario_dict)
         self.session.add(usuario)
 
@@ -85,9 +88,12 @@ class UsuarioService:
                 )
 
         if "password" in usuario_dict and usuario_dict["password"] is not None:
-            usuario_dict["hashed_password"] = hash_password(
-                usuario_dict.pop("password")
-            )
+            try:
+                usuario_dict["hashed_password"] = hash_password(
+                    usuario_dict.pop("password")
+                )
+            except ValueError as exc:
+                raise HTTPException(status_code=400, detail=str(exc)) from exc
 
         for key, value in usuario_dict.items():
             setattr(usuario, key, value)
