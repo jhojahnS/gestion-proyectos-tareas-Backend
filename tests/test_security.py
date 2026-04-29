@@ -29,12 +29,15 @@ def test_validate_password_length_raises_clear_error_when_limit_exceeded():
     try:
         validate_password_length(long_password)
     except ValueError as exc:
-        assert (
-            str(exc)
-            == f"La contraseña no puede superar {PASSWORD_MAX_LENGTH} caracteres"
+        expected = (
+            "La contraseña no puede superar "
+            f"{PASSWORD_MAX_LENGTH} caracteres"
         )
+        assert str(exc) == expected
     else:
-        raise AssertionError("Se esperaba ValueError para contraseñas demasiado largas")
+        raise AssertionError(
+            "Se esperaba ValueError para contraseñas demasiado largas"
+        )
 
 
 def test_verify_password_supports_legacy_bcrypt_hashes():
@@ -42,4 +45,3 @@ def test_verify_password_supports_legacy_bcrypt_hashes():
     legacy_hash = bcrypt.hash(password)
 
     assert verify_password(password, legacy_hash) is True
-

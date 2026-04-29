@@ -21,11 +21,13 @@ def validate_password_length(password: str) -> None:
     length = len(password)
     if length < PASSWORD_MIN_LENGTH:
         raise ValueError(
-            f"La contraseña debe tener al menos {PASSWORD_MIN_LENGTH} caracteres"
+            "La contraseña debe tener al menos "
+            f"{PASSWORD_MIN_LENGTH} caracteres"
         )
     if length > PASSWORD_MAX_LENGTH:
         raise ValueError(
-            f"La contraseña no puede superar {PASSWORD_MAX_LENGTH} caracteres"
+            "La contraseña no puede superar "
+            f"{PASSWORD_MAX_LENGTH} caracteres"
         )
 
 
