@@ -3,7 +3,11 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from app.schemas.usuario import UsuarioCreate, UsuarioResponse
 from app.services.usuario_service import UsuarioService
-from app.core.security import verify_password, create_access_token
+from app.core.security import (
+    create_access_token,
+    validate_password_length,
+    verify_password,
+)
 from app.core.auth import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -19,6 +23,11 @@ def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     service: UsuarioService = Depends(),
 ):
+    try:
+        validate_password_length(form_data.password)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     user = service.get_by_email(form_data.username)
 
     if not user or not verify_password(
