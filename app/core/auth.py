@@ -25,3 +25,15 @@ def get_current_user(
 
     except JWTError:
         raise HTTPException(status_code=401, detail="Token inválido")
+
+
+def is_global_admin(user) -> bool:
+    """
+    Verifica si el usuario tiene rol global de administrador.
+    """
+    if hasattr(user, 'rol') and user.rol:
+        rol_nombre = user.rol.nombre.lower() if hasattr(
+            user.rol, 'nombre'
+        ) else None
+        return rol_nombre in ["admin", "administrador"]
+    return False

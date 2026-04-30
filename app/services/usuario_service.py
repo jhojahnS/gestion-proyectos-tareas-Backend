@@ -131,3 +131,12 @@ class UsuarioService:
         return self.session.exec(
             select(Usuario).where(Usuario.email == email)
         ).first()
+
+    def search_by_email(self, email: str, limit: int = 10):
+        """Busca usuarios cuyo email contenga el texto dado"""
+        statement = (
+            select(Usuario)
+            .where(Usuario.email.contains(email))
+            .limit(limit)
+        )
+        return self.session.exec(statement).all()

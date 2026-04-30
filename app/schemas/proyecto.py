@@ -10,7 +10,7 @@ class ProyectoCreate(SQLModel):
 
 class ProyectoResponse(ProyectoCreate):
     id_proyecto: int
-    usuario_id: int
+    creado_por_id: int
 
 
 class ProyectoUpdate(SQLModel):

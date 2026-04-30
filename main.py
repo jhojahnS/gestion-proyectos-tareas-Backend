@@ -4,6 +4,14 @@ from fastapi import FastAPI
 from app.db.session import engine
 from app.routers import auth, comentarios, proyectos, roles, tareas, usuarios
 
+# Importar modelos para que SQLModel los registre
+from app.models.rol import Rol  # noqa: F401
+from app.models.usuario import Usuario  # noqa: F401
+from app.models.proyecto import Proyecto  # noqa: F401
+from app.models.proyecto_usuario import ProyectoUsuario  # noqa: F401
+from app.models.tarea import Tarea  # noqa: F401
+from app.models.comentario import Comentario  # noqa: F401
+
 
 app = FastAPI()
 
