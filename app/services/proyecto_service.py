@@ -22,6 +22,23 @@ class ProyectoService:
     def __init__(self, session: Session = Depends(get_session)):
         self.session = session
 
+    def _build_proyecto_usuario_response(
+        self,
+        proyecto_usuario: ProyectoUsuario,
+    ) -> ProyectoUsuarioResponse:
+        """
+        Construye ProyectoUsuarioResponse incluyendo datos del usuario.
+        """
+        usuario = self.session.get(Usuario, proyecto_usuario.id_usuario)
+        return ProyectoUsuarioResponse(
+            id_proyecto_usuario=proyecto_usuario.id_proyecto_usuario,
+            id_proyecto=proyecto_usuario.id_proyecto,
+            id_usuario=proyecto_usuario.id_usuario,
+            rol_proyecto=proyecto_usuario.rol_proyecto,
+            nombre_usuario=usuario.nombre if usuario else None,
+            email_usuario=usuario.email if usuario else None,
+        )
+
     def create(
             self,
             proyecto_data: ProyectoCreate,
@@ -201,12 +218,7 @@ class ProyectoService:
         self.session.commit()
         self.session.refresh(proyecto_usuario)
 
-        return ProyectoUsuarioResponse(
-            id_proyecto_usuario=proyecto_usuario.id_proyecto_usuario,
-            id_proyecto=proyecto_usuario.id_proyecto,
-            id_usuario=proyecto_usuario.id_usuario,
-            rol_proyecto=proyecto_usuario.rol_proyecto,
-        )
+        return self._build_proyecto_usuario_response(proyecto_usuario)
 
     def add_member_by_email(
         self,
@@ -275,12 +287,7 @@ class ProyectoService:
         self.session.commit()
         self.session.refresh(proyecto_usuario)
 
-        return ProyectoUsuarioResponse(
-            id_proyecto_usuario=proyecto_usuario.id_proyecto_usuario,
-            id_proyecto=proyecto_usuario.id_proyecto,
-            id_usuario=proyecto_usuario.id_usuario,
-            rol_proyecto=proyecto_usuario.rol_proyecto,
-        )
+        return self._build_proyecto_usuario_response(proyecto_usuario)
 
     def remove_member(
         self,
@@ -403,12 +410,7 @@ class ProyectoService:
         self.session.commit()
         self.session.refresh(proyecto_usuario)
 
-        return ProyectoUsuarioResponse(
-            id_proyecto_usuario=proyecto_usuario.id_proyecto_usuario,
-            id_proyecto=proyecto_usuario.id_proyecto,
-            id_usuario=proyecto_usuario.id_usuario,
-            rol_proyecto=proyecto_usuario.rol_proyecto,
-        )
+        return self._build_proyecto_usuario_response(proyecto_usuario)
 
     def get_user_project_role(
         self, project_id: int, user_id: int
@@ -469,11 +471,6 @@ class ProyectoService:
         ).all()
 
         return [
-            ProyectoUsuarioResponse(
-                id_proyecto_usuario=m.id_proyecto_usuario,
-                id_proyecto=m.id_proyecto,
-                id_usuario=m.id_usuario,
-                rol_proyecto=m.rol_proyecto,
-            )
+            self._build_proyecto_usuario_response(m)
             for m in miembros
         ]
