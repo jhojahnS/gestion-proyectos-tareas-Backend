@@ -205,10 +205,14 @@ class TareaService:
                 ):
                     raise HTTPException(
                         status_code=400,
-                        detail="El usuario asignado no pertenece a este proyecto"
+                        detail=(
+                            "El usuario asignado no pertenece a "
+                            "este proyecto"
+                        )
                     )
 
-        # Actualizar solo los campos permitidos (id_proyecto no está en TareaUpdate)
+        # Actualizar solo los campos permitidos
+        # (id_proyecto no está en TareaUpdate)
         for key, value in tarea_dict.items():
             setattr(tarea, key, value)
 
