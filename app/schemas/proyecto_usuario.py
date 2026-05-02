@@ -18,6 +18,8 @@ class ProyectoUsuarioResponse(SQLModel):
     id_proyecto: int
     id_usuario: int
     rol_proyecto: str
+    nombre_usuario: str | None = None
+    email_usuario: str | None = None
 
 
 class ProyectoUsuarioUpdate(SQLModel):
