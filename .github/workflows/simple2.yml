@@ -3,10 +3,6 @@ name: Backend CI/CD - FastAPI
 on:
   pull_request:
     branches: [ main, develop ]
-
-  push:
-    branches: [ develop ]
-
   workflow_dispatch:
 
 permissions:
