@@ -4,6 +4,7 @@ from sqlmodel import SQLModel, Field, Relationship
 
 if TYPE_CHECKING:
     from app.models.comentario import Comentario
+    from app.models.proyecto_usuario import ProyectoUsuario
     from app.models.rol import Rol
     from app.models.tarea import Tarea
 
@@ -12,7 +13,7 @@ class Usuario(SQLModel, table=True):
     id_usuario: int | None = Field(default=None, primary_key=True)
     nombre: str
     email: str
-    password: str
+    hashed_password: str
     id_rol: int = Field(foreign_key="rol.id_rol")
 
     rol: "Rol" = Relationship(back_populates="usuarios")
@@ -21,4 +22,8 @@ class Usuario(SQLModel, table=True):
     )
     comentarios: list["Comentario"] = Relationship(
         back_populates="usuario",
+    )
+    proyectos_miembro: list["ProyectoUsuario"] = Relationship(
+        back_populates="usuario",
+        cascade_delete=True,
     )

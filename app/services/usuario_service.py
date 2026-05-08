@@ -1,7 +1,10 @@
 from fastapi import Depends, HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
+from app.core.security import hash_password
 
 from app.db.session import get_session
+from app.models.rol import Rol
 from app.models.usuario import Usuario
 from app.schemas.usuario import (
     UsuarioCreate,
@@ -18,9 +21,35 @@ class UsuarioService:
         self,
         usuario_data: UsuarioCreate,
     ) -> UsuarioResponse:
-        usuario = Usuario(**usuario_data.model_dump())
+        role = self.session.get(Rol, usuario_data.id_rol)
+        if not role:
+            raise HTTPException(
+                status_code=400,
+                detail=f"El rol con id {usuario_data.id_rol} no existe",
+            )
+
+        usuario_dict = usuario_data.model_dump()
+        try:
+            usuario_dict["hashed_password"] = (
+                hash_password(usuario_dict.pop("password"))
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        usuario = Usuario(**usuario_dict)
         self.session.add(usuario)
-        self.session.commit()
+
+        try:
+            self.session.commit()
+        except IntegrityError:
+            self.session.rollback()
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "No se pudo crear el usuario por conflicto de "
+                    "integridad"
+                ),
+            )
+
         self.session.refresh(usuario)
         return UsuarioResponse(**usuario.model_dump())
 
@@ -49,11 +78,40 @@ class UsuarioService:
             )
 
         usuario_dict = usuario_data.model_dump(exclude_unset=True)
+
+        if "id_rol" in usuario_dict and usuario_dict["id_rol"] is not None:
+            role = self.session.get(Rol, usuario_dict["id_rol"])
+            if not role:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"El rol con id {usuario_dict['id_rol']} no existe",
+                )
+
+        if "password" in usuario_dict and usuario_dict["password"] is not None:
+            try:
+                usuario_dict["hashed_password"] = hash_password(
+                    usuario_dict.pop("password")
+                )
+            except ValueError as exc:
+                raise HTTPException(status_code=400, detail=str(exc)) from exc
+
         for key, value in usuario_dict.items():
             setattr(usuario, key, value)
 
         self.session.add(usuario)
-        self.session.commit()
+
+        try:
+            self.session.commit()
+        except IntegrityError:
+            self.session.rollback()
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "No se pudo actualizar el usuario por conflicto de "
+                    "integridad"
+                ),
+            )
+
         self.session.refresh(usuario)
         return usuario
 
@@ -68,3 +126,17 @@ class UsuarioService:
         self.session.delete(usuario)
         self.session.commit()
         return {"message": "Usuario eliminado exitosamente"}
+
+    def get_by_email(self, email: str):
+        return self.session.exec(
+            select(Usuario).where(Usuario.email == email)
+        ).first()
+
+    def search_by_email(self, email: str, limit: int = 10):
+        """Busca usuarios cuyo email contenga el texto dado"""
+        statement = (
+            select(Usuario)
+            .where(Usuario.email.contains(email))
+            .limit(limit)
+        )
+        return self.session.exec(statement).all()

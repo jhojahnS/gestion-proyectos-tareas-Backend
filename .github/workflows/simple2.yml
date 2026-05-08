@@ -1,44 +1,133 @@
-name: CI2
+name: API Pipeline - FastAPI
 
 on:
-  pull_request:
-    branches: [ main, develop ]
-
   workflow_dispatch:
-    
+  pull_request:
+    branches:
+      - develop
+      - main
+    paths:
+      - '**.py'
+      - 'requirements.txt'
+      - 'Dockerfile'
+      - 'devops/scripts/deploy-backend.sh'
+      - '.github/workflows/api-pipeline.yml'
+
 jobs:
-  backend-checks:
+  build-push-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: download repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: install Python
+      - name: Install Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.14"
+          python-version: "3.12"
 
-      - name: install dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install flake8
+          pip install flake8 pytest
 
-      - name: quality code (lint)
+      - name: Quality code lint
         run: flake8 .
 
-      - name: basic project verification
+      - name: Basic project verification
         run: python -m compileall .
 
       - name: Run tests
-        run:  pytest
-        
-      - name: Login Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+        run: pytest
 
-      - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/api:latest .
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Push Docker image
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/api:latest
+      - name: Setup Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Get ECR URI
+        id: repo-uris
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          BACKEND_REPO_URI=${ACCOUNT_ID}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/gestion-proyectos-tareas-api
+
+          echo "backend_repo_uri=$BACKEND_REPO_URI" >> $GITHUB_OUTPUT
+          echo "Backend ECR URI: $BACKEND_REPO_URI"
+
+      - name: Login to ECR
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+            | docker login --username AWS \
+            --password-stdin ${ACCOUNT_ID}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
+      - name: Build and push backend image
+        run: |
+          IMAGE_TAG=${{ github.sha }}
+
+          docker build -t gestion-proyectos-tareas-api:$IMAGE_TAG .
+          docker tag gestion-proyectos-tareas-api:$IMAGE_TAG ${{ steps.repo-uris.outputs.backend_repo_uri }}:$IMAGE_TAG
+          docker tag gestion-proyectos-tareas-api:$IMAGE_TAG ${{ steps.repo-uris.outputs.backend_repo_uri }}:latest
+
+          docker push ${{ steps.repo-uris.outputs.backend_repo_uri }}:$IMAGE_TAG
+          docker push ${{ steps.repo-uris.outputs.backend_repo_uri }}:latest
+
+      - name: Get EC2 instance ID
+        id: ec2
+        run: |
+          INSTANCE_ID=$(aws cloudformation describe-stacks \
+            --stack-name gestion-proyectos-tareas-ec2-api \
+            --region ${{ secrets.AWS_REGION }} \
+            --query "Stacks[0].Outputs[?OutputKey=='ApiEC2InstanceId'].OutputValue" \
+            --output text)
+
+          echo "instance_id=$INSTANCE_ID" >> $GITHUB_OUTPUT
+          echo "EC2 Instance ID: $INSTANCE_ID"
+
+      - name: Deploy backend on EC2 using SSM
+        run: |
+          SCRIPT_CONTENT=$(base64 -w 0 devops/scripts/deploy-backend.sh)
+
+          COMMAND_ID=$(aws ssm send-command \
+            --region ${{ secrets.AWS_REGION }} \
+            --instance-ids "${{ steps.ec2.outputs.instance_id }}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy Gestion Proyectos Tareas FastAPI container" \
+            --parameters "commands=[
+              \"echo $SCRIPT_CONTENT | base64 -d > /tmp/deploy-backend.sh\",
+              \"chmod +x /tmp/deploy-backend.sh\",
+              \"AWS_REGION=${{ secrets.AWS_REGION }} IMAGE_URI=${{ steps.repo-uris.outputs.backend_repo_uri }}:${{ github.sha }} DB_HOST='${{ secrets.DB_HOST }}' DB_PORT='${{ secrets.DB_PORT }}' DB_NAME='${{ secrets.DB_NAME }}' DB_USER='${{ secrets.DB_USER }}' DB_PASSWORD='${{ secrets.DB_PASSWORD }}' USER_IMAGES_BUCKET='${{ secrets.USER_IMAGES_BUCKET }}' /tmp/deploy-backend.sh\"
+            ]" \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "Command ID: $COMMAND_ID"
+
+          aws ssm wait command-executed \
+            --region ${{ secrets.AWS_REGION }} \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ steps.ec2.outputs.instance_id }}" || true
+
+          aws ssm get-command-invocation \
+            --region ${{ secrets.AWS_REGION }} \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ steps.ec2.outputs.instance_id }}" \
+            --query "{Status:Status,Stdout:StandardOutputContent,Stderr:StandardErrorContent}" \
+            --output json
+
+          STATUS=$(aws ssm get-command-invocation \
+            --region ${{ secrets.AWS_REGION }} \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ steps.ec2.outputs.instance_id }}" \
+            --query "Status" \
+            --output text)
+
+          if [ "$STATUS" != "Success" ]; then
+            exit 1
+          fi
