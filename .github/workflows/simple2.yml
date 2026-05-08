@@ -6,12 +6,6 @@ on:
     branches:
       - develop
       - main
-    paths:
-      - '**.py'
-      - 'requirements.txt'
-      - 'Dockerfile'
-      - 'devops/scripts/deploy-backend.sh'
-      - '.github/workflows/api-pipeline.yml'
 
 jobs:
   build-push-and-deploy:
@@ -82,7 +76,7 @@ jobs:
         id: ec2
         run: |
           INSTANCE_ID=$(aws cloudformation describe-stacks \
-            --stack-name gestion-proyectos-tareas-ec2-api \
+            --stack-name gestion-proyectos-tareas-ec2 \
             --region ${{ secrets.AWS_REGION }} \
             --query "Stacks[0].Outputs[?OutputKey=='ApiEC2InstanceId'].OutputValue" \
             --output text)
@@ -92,7 +86,7 @@ jobs:
 
       - name: Deploy backend on EC2 using SSM
         run: |
-          SCRIPT_CONTENT=$(base64 -w 0 devops/scripts/deploy-backend.sh)
+          SCRIPT_CONTENT=$(base64 -w 0 scripts/deploy-backend.sh)
 
           COMMAND_ID=$(aws ssm send-command \
             --region ${{ secrets.AWS_REGION }} \
