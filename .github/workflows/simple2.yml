@@ -1,44 +1,59 @@
-name: CI2
+name: Backend CI/CD - FastAPI
 
 on:
   pull_request:
     branches: [ main, develop ]
 
+  push:
+    branches: [ develop ]
+
   workflow_dispatch:
-    
+
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
-  backend-checks:
+  backend-checks-and-build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: download repository
+      - name: Download repository
         uses: actions/checkout@v4
 
-      - name: install Python
+      - name: Install Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.14"
+          python-version: "3.12"
 
-      - name: install dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install flake8
+          pip install flake8 pytest
 
-      - name: quality code (lint)
+      - name: Quality code lint
         run: flake8 .
 
-      - name: basic project verification
+      - name: Basic project verification
         run: python -m compileall .
 
       - name: Run tests
-        run:  pytest
-        
-      - name: Login Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+        run: pytest
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_BACKEND_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/api:latest .
+        run: |
+          docker build -t ${{ vars.ECR_REPOSITORY_URI }}:latest .
 
-      - name: Push Docker image
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/api:latest
+      - name: Push Docker image to ECR
+        run: |
+          docker push ${{ vars.ECR_REPOSITORY_URI }}:latest
