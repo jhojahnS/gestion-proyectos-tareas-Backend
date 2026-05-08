@@ -3,10 +3,6 @@ name: Backend CI/CD - FastAPI
 on:
   pull_request:
     branches: [ main, develop ]
-
-  push:
-    branches: [ develop ]
-
   workflow_dispatch:
 
 permissions:
@@ -42,22 +38,18 @@ jobs:
         run: pytest
 
       - name: Configure AWS credentials
-        if: github.event_name != 'pull_request'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_BACKEND_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        if: github.event_name != 'pull_request'
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build Docker image
-        if: github.event_name != 'pull_request'
         run: |
           docker build -t ${{ vars.ECR_REPOSITORY_URI }}:latest .
 
       - name: Push Docker image to ECR
-        if: github.event_name != 'pull_request'
         run: |
           docker push ${{ vars.ECR_REPOSITORY_URI }}:latest
