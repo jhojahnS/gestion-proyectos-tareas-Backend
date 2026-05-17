@@ -5,7 +5,7 @@ API REST para la gestión de usuarios, proyectos y tareas dentro de equipos de t
 Este proyecto se desarrolla como parte del **Trabajo de Fin de Grado del CFGS Desarrollo de Aplicaciones Multiplataforma (DAM)**.
 
 **Este repositorio contiene únicamente el BACKEND del sistema.**  
-El cliente (WPF) se encuentra en un repositorio independiente.
+El cliente (.NET MAUI) se encuentra en un repositorio independiente.
 
 ---
 
